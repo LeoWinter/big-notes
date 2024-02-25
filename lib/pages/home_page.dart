@@ -11,9 +11,21 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-final List<Note> notes = [];
+List<Note> notes = [];
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    NoteDatabase.isar.notes.watchLazy(fireImmediately: true).listen(
+      (event) async {
+        notes = await NoteDatabase.isar.notes.where().findAll();
+        print(notes.length);
+        setState(() {});
+      },
+    );
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,28 +34,25 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.pink.shade800,
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
-        print(NoteDatabase.currentNote.length);
+        NoteDatabase().addNote("NOahj", "Ben trucidado");
+        setState(() {});
       }),
       body: SafeArea(
-        child: gi(
-          valueListenable: NoteDatabase.currentNote,
-          builder: (context, value, child) {},
-        ),
-        //child: getChild(),
+        child: getChild(),
       ),
     );
   }
 
   Widget getChild() {
-    if (NoteDatabase.currentNote.isEmpty) {
+    if (notes.isEmpty) {
       return const Center(
         child: Text("Não há notas"),
       );
     } else {
       return ListView.builder(
-        itemCount: NoteDatabase.currentNote.length,
+        itemCount: notes.length,
         itemBuilder: (context, index) {
-          Note note = NoteDatabase.currentNote[index];
+          Note note = notes[index];
           return NoteTile(
             note: note,
           );

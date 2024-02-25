@@ -12,12 +12,6 @@ class NoteDatabase {
       [NoteSchema],
       directory: dir.path,
     );
-    await isar.txn(
-      () async {
-        final noteCollection = isar.notes;
-        currentNote = await noteCollection.where().findAll();
-      },
-    );
   }
 
   Future<void> addNote(String title, String text) async {
@@ -51,5 +45,12 @@ class NoteDatabase {
       await isar.writeTxn(() => isar.notes.put(note));
       currentNote.add(note);
     }
+  }
+
+  Future<void> listenNotes() async {
+    Stream notes = isar.notes.watchLazy();
+    notes.listen((event) async {
+      currentNote = await isar.notes.where().findAll();
+    });
   }
 }
